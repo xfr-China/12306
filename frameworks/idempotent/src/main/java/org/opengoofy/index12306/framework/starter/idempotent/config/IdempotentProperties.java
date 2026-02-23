@@ -23,7 +23,7 @@ public class IdempotentProperties {
     /**
      * Token 申请后过期时间
      * 单位默认毫秒 {@link TimeUnit#MILLISECONDS}
-     * 随着分布式缓存过期时间单位 {@link RedisDistributedProperties#valueTimeUnit} 而变化
+     * 随着分布式缓存过期时间单位  而变化
      */
     private Long timeout;
 }

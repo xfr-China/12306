@@ -6,24 +6,19 @@ import {
   InputPassword,
   Button,
   message,
-  Select,
-  Modal
+  Select
 } from 'ant-design-vue'
-import { reactive, ref, unref } from 'vue'
+import { reactive, ref } from 'vue'
 import { fetchLogin, fetchRegister } from '../../service'
 import { UserOutlined, LockOutlined } from '@ant-design/icons-vue'
 import { useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
+
 const useForm = Form.useForm
 
 const formState = reactive({
   usernameOrMailOrPhone: 'admin',
-  password: 'admin123456',
-  code: ''
-})
-
-const state = reactive({
-  open: false
+  password: 'admin123456'
 })
 
 const rulesRef = reactive({
@@ -99,24 +94,17 @@ const registerRules = reactive({
 })
 
 const { validate: registerValidate, validateInfos: registerValidateInfos } =
-  useForm(registerForm, registerRules)
+    useForm(registerForm, registerRules)
 
 let currentAction = ref('login')
 
 const router = useRouter()
 
 const handleFinish = () => {
-  if (location.host.indexOf('12306') !== -1) {
-    validate()
-      .then(() => {
-        state.open = true
-      })
-      .catch((err) => console.log(err))
-    return
-  }
   validate().then(() => {
     fetchLogin({
-      ...formState
+      usernameOrMailOrPhone: formState.usernameOrMailOrPhone,
+      password: formState.password
     }).then((res) => {
       if (res.success) {
         Cookies.set('token', res.data?.accessToken)
@@ -130,55 +118,27 @@ const handleFinish = () => {
   })
 }
 
-const handleLogin = () => {
-  if (!formState.code) return message.error('请输入验证码')
-  validate()
-    .then(() => {
-      fetchLogin({
-        usernameOrMailOrPhone: formState.usernameOrMailOrPhone,
-        password: formState.code
-      }).then((res) => {
-        if (res.success) {
-          Cookies.set('token', res.data?.accessToken)
-          Cookies.set('userId', res.data?.userId)
-          Cookies.set('username', res.data?.username)
-          router.push('/ticketSearch')
-        } else {
-          message.error(res.message)
-        }
-      })
-    })
-    .catch((err) => console.log(err))
-}
-
 const registerSubmit = () => {
-  if (location.host.indexOf('12306') !== -1) {
-    message.info('关注公众获取验证码登录哦！')
-    currentAction.value = 'login'
-    return
-  }
   registerValidate()
-    .then(() => {
-      fetchRegister(registerForm).then((res) => {
-        if (res.success) {
-          message.success('注册成功')
-          currentAction.value = 'login'
-          formState.usernameOrMailOrPhone = res.data?.username
-          formState.password = ''
-        } else {
-          message.error(res.message)
-        }
+      .then(() => {
+        fetchRegister(registerForm).then((res) => {
+          if (res.success) {
+            message.success('注册成功')
+            currentAction.value = 'login'
+            formState.usernameOrMailOrPhone = res.data?.username
+            formState.password = ''
+          } else {
+            message.error(res.message)
+          }
+        })
       })
-    })
-    .catch((err) => console.log(err))
+      .catch((err) => console.log(err))
 }
 </script>
+
 <template>
   <div class="login-wrapper">
-    <div class="title-wrapper">
-      <!-- <h1 class="title">铁路12306</h1>
-      <h3 class="desc">其他文案</h3> -->
-    </div>
+    <div class="title-wrapper"></div>
     <div class="login-reg-panel">
       <div class="login-info-box">
         <h2>已有账号？</h2>
@@ -191,43 +151,45 @@ const registerSubmit = () => {
         <button @click="() => (currentAction = 'register')">去注册</button>
       </div>
       <div
-        class="white-panel"
-        :class="{ 'white-panel-left': currentAction === 'register' }"
+          class="white-panel"
+          :class="{ 'white-panel-left': currentAction === 'register' }"
       >
         <div class="login-show" v-if="currentAction === 'login'">
           <h1 class="title">登录</h1>
           <Form name="basic" autocomplete="off">
             <FormItem v-bind="validateInfos.usernameOrMailOrPhone">
               <Input
-                size="large"
-                v-model:value="formState.usernameOrMailOrPhone"
-                placeholder="用户名"
+                  size="large"
+                  v-model:value="formState.usernameOrMailOrPhone"
+                  placeholder="用户名"
               >
-                <template #prefix
-                  ><UserOutlined style="color: rgba(0, 0, 0, 0.25)" /></template
-              ></Input>
+                <template #prefix>
+                  <UserOutlined style="color: rgba(0, 0, 0, 0.25)" />
+                </template>
+              </Input>
             </FormItem>
 
             <FormItem v-bind="validateInfos.password">
               <InputPassword
-                size="large"
-                v-model:value="formState.password"
-                placeholder="密码"
+                  size="large"
+                  v-model:value="formState.password"
+                  placeholder="密码"
               >
-                <template #prefix
-                  ><LockOutlined style="color: rgba(0, 0, 0, 0.25)"
-                /></template>
+                <template #prefix>
+                  <LockOutlined style="color: rgba(0, 0, 0, 0.25)" />
+                </template>
               </InputPassword>
             </FormItem>
             <FormItem>
               <div class="action-btn">
                 <a href="">忘记密码？</a>
                 <Button
-                  type="primary"
-                  :style="{ backgroundColor: '#202020', border: 'none' }"
-                  @click="handleFinish"
-                  >登录</Button
+                    type="primary"
+                    :style="{ backgroundColor: '#202020', border: 'none' }"
+                    @click="handleFinish"
                 >
+                  登录
+                </Button>
               </div>
             </FormItem>
           </Form>
@@ -237,63 +199,58 @@ const registerSubmit = () => {
           <Form name="basic" autocomplete="off" :label-col="{ span: 6 }">
             <FormItem label="用户名" v-bind="registerValidateInfos.username">
               <Input
-                v-model:value="registerForm.username"
-                placeholder="请输入用户名"
-              >
-              </Input>
+                  v-model:value="registerForm.username"
+                  placeholder="请输入用户名"
+              />
             </FormItem>
             <FormItem label="密码" v-bind="registerValidateInfos.password">
               <InputPassword
-                v-model:value="registerForm.password"
-                placeholder="密码"
-              >
-              </InputPassword>
+                  v-model:value="registerForm.password"
+                  placeholder="密码"
+              />
             </FormItem>
 
             <FormItem label="姓名" v-bind="registerValidateInfos.realName">
               <Input
-                v-model:value="registerForm.realName"
-                placeholder="请输入姓名"
-              >
-              </Input>
+                  v-model:value="registerForm.realName"
+                  placeholder="请输入姓名"
+              />
             </FormItem>
             <FormItem label="证件类型" v-bind="registerValidateInfos.idType">
               <Select
-                :options="[{ value: 0, label: '中国居民身份证' }]"
-                v-model:value="registerForm.idType"
-                placeholder="请选择证件类型"
-              ></Select>
+                  :options="[{ value: 0, label: '中国居民身份证' }]"
+                  v-model:value="registerForm.idType"
+                  placeholder="请选择证件类型"
+              />
             </FormItem>
             <FormItem label="证件号码" v-bind="registerValidateInfos.idCard">
               <Input
-                v-model:value="registerForm.idCard"
-                placeholder="请输入证件号码"
-              >
-              </Input>
+                  v-model:value="registerForm.idCard"
+                  placeholder="请输入证件号码"
+              />
             </FormItem>
             <FormItem label="手机号码" v-bind="registerValidateInfos.phone">
               <Input
-                v-model:value="registerForm.phone"
-                placeholder="请输入手机号码"
-              >
-              </Input>
+                  v-model:value="registerForm.phone"
+                  placeholder="请输入手机号码"
+              />
             </FormItem>
             <FormItem label="邮件" v-bind="registerValidateInfos.mail">
               <Input
-                v-model:value="registerForm.mail"
-                placeholder="请输入邮箱账号"
-              >
-              </Input>
+                  v-model:value="registerForm.mail"
+                  placeholder="请输入邮箱账号"
+              />
             </FormItem>
             <FormItem>
               <div class="action-btn">
                 <a></a>
                 <Button
-                  type="primary"
-                  @click="registerSubmit"
-                  :style="{ backgroundColor: '#202020', border: 'none' }"
-                  >注册</Button
+                    type="primary"
+                    @click="registerSubmit"
+                    :style="{ backgroundColor: '#202020', border: 'none' }"
                 >
+                  注册
+                </Button>
               </div>
             </FormItem>
           </Form>
@@ -301,41 +258,12 @@ const registerSubmit = () => {
       </div>
     </div>
   </div>
-  <Modal
-    :visible="state.open"
-    title="人机认证"
-    wrapClassName="code-modal"
-    width="450px"
-    @cancel="state.open = false"
-    @ok="handleLogin"
-    centered
-  >
-    <div class="wrapper">
-      <h1 class="tip-text">
-        {{
-          `扫码下方二维码，关注后回复：12306，获取拿个offer-12306在线购票系统人机验证码`
-        }}
-      </h1>
-      <img
-        src="https://images-machen.oss-cn-beijing.aliyuncs.com/1_990064918_171_86_3_722467528_78457b21279219802d38525d32a77f39.png"
-        alt="微信公众号"
-      />
-      <div class="code-input">
-        <label class="code-label">验证码</label>
-        <Input
-          v-model:value="formState.code"
-          :style="{ width: '300px' }"
-        ></Input>
-      </div>
-    </div>
-  </Modal>
 </template>
 
 <style lang="scss" scoped>
 .login-wrapper {
   width: 100%;
   height: 100%;
-  // background-color: #fff;
   background: url('../../assets/black_dot.png');
   background-clip: border-box;
   .login-reg-panel {
@@ -364,7 +292,6 @@ const registerSubmit = () => {
         height: 100%;
         display: flex;
         flex-direction: column;
-        // justify-content: space-around;
         transition: 0.3s ease-in-out;
         color: #242424;
         text-align: left;
@@ -406,7 +333,6 @@ const registerSubmit = () => {
         font-size: 24px;
         color: #b8b8b8;
         font-weight: bolder;
-        font-weight: bolder;
         margin-bottom: 40px;
       }
       h3 {
@@ -437,7 +363,6 @@ const registerSubmit = () => {
         font-size: 24px;
         color: #b8b8b8;
         font-weight: bolder;
-        font-weight: bolder;
         margin-bottom: 40px;
       }
       h3 {
@@ -454,40 +379,6 @@ const registerSubmit = () => {
         border-radius: 2px;
         height: 25px;
       }
-    }
-  }
-}
-.code-modal {
-  .wrapper {
-    text-align: center;
-    .tip-text {
-      width: 100%;
-      text-align: center;
-      font-size: 14px;
-      color: red;
-    }
-    .code-input {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      .code-label {
-        margin: 10px;
-        &::before {
-          content: '*';
-          color: red;
-        }
-      }
-    }
-  }
-}
-::v-deep {
-  .ant-modal-header {
-    background-color: #3b3b3b !important;
-  }
-  .ant-form-item-label {
-    label {
-      color: #202020;
     }
   }
 }

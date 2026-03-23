@@ -13,10 +13,13 @@ local tokenIsNull = false
 local tokenIsNullSeatTypeCounts = {}
 
 for index, jsonObj in ipairs(jsonArray) do
-    local seatType = tonumber(jsonObj.seatType)
+    local seatType = tostring(jsonObj.seatType)
     local count = tonumber(jsonObj.count)
     local actualInnerHashKey = actualKey .. "_" .. seatType
     local ticketSeatAvailabilityTokenValue = tonumber(redis.call('hget', KEYS[1], tostring(actualInnerHashKey)))
+    if ticketSeatAvailabilityTokenValue == nil then
+        ticketSeatAvailabilityTokenValue = 0
+    end
     if ticketSeatAvailabilityTokenValue < count then
         tokenIsNull = true
         table.insert(tokenIsNullSeatTypeCounts, seatType .. "_" .. count)
@@ -33,7 +36,7 @@ local alongJsonArrayStr = ARGV[2]
 local alongJsonArray = cjson.decode(alongJsonArrayStr)
 
 for index, jsonObj in ipairs(jsonArray) do
-    local seatType = tonumber(jsonObj.seatType)
+    local seatType = tostring(jsonObj.seatType)
     local count = tonumber(jsonObj.count)
     for indexTwo, alongJsonObj in ipairs(alongJsonArray) do
         local startStation = tostring(alongJsonObj.startStation)
